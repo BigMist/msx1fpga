@@ -109,13 +109,19 @@ entity msx is
 		bus_wait_n_i	: in  std_logic;
 		bus_nmi_n_i		: in  std_logic;
 		bus_int_n_i		: in  std_logic;
+		--F18A
+		clk_100_i         : in std_logic;
+		clk_25_i          : in std_logic;
+	   sprite_max_i      : in std_logic;
+	   scan_lines_i      : in std_logic;
+
 		-- VDP VRAM
-		vram_addr_o		: out std_logic_vector(13 downto 0);	-- 16K
-		vram_data_i		: in  std_logic_vector( 7 downto 0);
-		vram_data_o		: out std_logic_vector( 7 downto 0);
-		vram_ce_o		: out std_logic;
-		vram_oe_o		: out std_logic;
-		vram_we_o		: out std_logic;
+--		vram_addr_o		: out std_logic_vector(13 downto 0);	-- 16K
+--		vram_data_i		: in  std_logic_vector( 7 downto 0);
+--		vram_data_o		: out std_logic_vector( 7 downto 0);
+--		vram_ce_o		: out std_logic;
+--		vram_oe_o		: out std_logic;
+--		vram_we_o		: out std_logic;
 		-- Keyboard
 		rows_o			: out std_logic_vector( 3 downto 0);
 		cols_i			: in  std_logic_vector( 7 downto 0)		:= (others => '1');
@@ -161,6 +167,8 @@ entity msx is
 		rgb_b_o			: out std_logic_vector( 3 downto 0);
 		hsync_n_o		: out std_logic;
 		vsync_n_o		: out std_logic;
+		hblank_o		   : out std_logic;
+		vblank_o		   : out std_logic;
 		ntsc_pal_o		: out std_logic;
 		vga_on_k_i		: in  std_logic;
 		vga_en_o			: out std_logic;
@@ -357,40 +365,73 @@ begin
 	);
 
 	-- VDP
-	vdp: entity work.vdp18_core
-	generic map (
-		video_opt_g		=> video_opt_g
-	)
+--	vdp: entity work.vdp18_core
+--	generic map (
+--		video_opt_g		=> video_opt_g
+--	)
+--	port map (
+--		clock_i			=> clock_i,
+--		clk_en_10m7_i	=> clock_vdp_i,
+--		por_i				=> por_i,
+--		reset_i			=> reset_i,
+--		csr_n_i			=> vdp_rd_n_s,
+--		csw_n_i			=> vdp_wr_n_s,
+--		mode_i			=> cpu_addr_s(1 downto 0),
+--		int_n_o			=> vdp_int_n_s,
+--		cd_i				=> d_from_cpu_s,
+--		cd_o				=> d_from_vdp_s,
+--		wait_o			=> vdp_wait_s,
+--		vram_ce_o		=> vram_ce_o,
+--		vram_oe_o		=> vram_oe_o,
+--		vram_we_o		=> vram_we_o,
+--		vram_a_o			=> vram_addr_o,
+--		vram_d_o			=> vram_data_o,
+--		vram_d_i			=> vram_data_i,
+--		vga_en_i			=> vga_en_s,
+--		scanline_en_i	=> scanline_en_s,
+--		cnt_hor_o		=> cnt_hor_o,
+--		cnt_ver_o		=> cnt_ver_o,
+--		rgb_r_o			=> rgb_r_o,
+--		rgb_g_o			=> rgb_g_o,
+--		rgb_b_o			=> rgb_b_o,
+--		hsync_n_o		=> hsync_n_o,
+--		vsync_n_o		=> vsync_n_o,
+--		hblank_o		   => hblank_o,
+--		vblank_o		   => vblank_o,
+--		ntsc_pal_i		=> ntsc_pal_s,
+--		vertfreq_csw_o	=> vertfreq_csw_s,
+--		vertfreq_d_o	=> vertfreq_d_s
+--	);
+	vdp: entity work.f18a_core
 	port map (
-		clock_i			=> clock_i,
-		clk_en_10m7_i	=> clock_vdp_i,
-		por_i				=> por_i,
-		reset_i			=> reset_i,
+		clk_100m0_i		=> clk_100_i,
+		clk_25m0_i 	   => clk_25_i,
+		sprite_max_i   => sprite_max_i,
+		scanlines_i    => scan_lines_i,
+--		por_i				=> por_i,
+		reset_n_i		=> reset_n_s,
 		csr_n_i			=> vdp_rd_n_s,
 		csw_n_i			=> vdp_wr_n_s,
-		mode_i			=> cpu_addr_s(1 downto 0),
+		mode_i			=> cpu_addr_s(0),
 		int_n_o			=> vdp_int_n_s,
 		cd_i				=> d_from_cpu_s,
 		cd_o				=> d_from_vdp_s,
-		wait_o			=> vdp_wait_s,
-		vram_ce_o		=> vram_ce_o,
-		vram_oe_o		=> vram_oe_o,
-		vram_we_o		=> vram_we_o,
-		vram_a_o			=> vram_addr_o,
-		vram_d_o			=> vram_data_o,
-		vram_d_i			=> vram_data_i,
-		vga_en_i			=> vga_en_s,
-		scanline_en_i	=> scanline_en_s,
-		cnt_hor_o		=> cnt_hor_o,
-		cnt_ver_o		=> cnt_ver_o,
-		rgb_r_o			=> rgb_r_o,
-		rgb_g_o			=> rgb_g_o,
-		rgb_b_o			=> rgb_b_o,
-		hsync_n_o		=> hsync_n_o,
-		vsync_n_o		=> vsync_n_o,
-		ntsc_pal_i		=> ntsc_pal_s,
-		vertfreq_csw_o	=> vertfreq_csw_s,
-		vertfreq_d_o	=> vertfreq_d_s
+--		wait_o			=> vdp_wait_s,
+--		vga_en_i			=> vga_en_s,
+--		scanline_en_i	=> scanline_en_s,
+--		cnt_hor_o		=> cnt_hor_o,
+--		cnt_ver_o		=> cnt_ver_o,
+		red_o			   => rgb_r_o,
+		grn_o	  		   => rgb_g_o,
+		blu_o			   => rgb_b_o,
+		hsync_o		   => hsync_n_o,
+		vsync_o		   => vsync_n_o,
+		hblank_o		   => hblank_o,
+		vblank_o		   => vblank_o,
+--		ntsc_pal_i		=> ntsc_pal_s,
+      spi_miso_i     => 'Z'
+--		vertfreq_csw_o	=> vertfreq_csw_s,
+--		vertfreq_d_o	=> vertfreq_d_s
 	);
 
 	-- PSG
@@ -820,7 +861,7 @@ begin
 	bus_sltsl1_n_o	<= slot1_exp_n_s(1);
 	bus_sltsl2_n_o	<= slot1_exp_n_s(2);
 
-	wait_n_s			<= m1_wait_n_s and bus_wait_n_i and not vdp_wait_s;
+	wait_n_s			<= m1_wait_n_s and bus_wait_n_i; -- and not vdp_wait_s;
 	int_n_s			<= bus_int_n_i and vdp_int_n_s;
 
 	vga_en_o			<= vga_en_s;

@@ -52,7 +52,7 @@ entity vdp18_col_mux is
 	port (
 		vert_active_i	: in  boolean;
 		hor_active_i	: in  boolean;
-		blank_i			: in  boolean;
+		blank_i			: in  std_logic;
 		reg_col0_i		: in  std_logic_vector(0 to  3);
 		pat_col_i		: in  std_logic_vector(0 to  3);
 		spr0_col_i		: in  std_logic_vector(0 to  3);
@@ -82,7 +82,7 @@ begin
 							pat_col_i,
 							reg_col0_i)
 	begin
-		if not blank_i then
+		if blank_i = '0' then
 			if hor_active_i and vert_active_i then
 				-- priority decoder
 				if    spr0_col_i /= "0000" then

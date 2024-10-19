@@ -63,7 +63,9 @@ entity vdp18_hor_vert is
     vert_inc_o    : out boolean;
     hsync_n_o     : out std_logic;
     vsync_n_o     : out std_logic;
-    blank_o       : out boolean;
+    hblank_o      : buffer std_logic;
+    vblank_o      : buffer std_logic;
+    blank_o       : out std_logic;
 	 cnt_hor_o		: out std_logic_vector(8 downto 0);
 	 cnt_ver_o		: out std_logic_vector(7 downto 0)
   );
@@ -86,8 +88,8 @@ architecture rtl of vdp18_hor_vert is
 
   signal vert_inc_s   : boolean;
 
-  signal hblank_q,
-         vblank_q     : boolean;
+--  signal hblank_q,
+--         vblank_q     : boolean;
 
 	signal cnt_hor_s	: unsigned(8 downto 0);
 	signal cnt_ver_s	: unsigned(7 downto 0);
@@ -137,8 +139,8 @@ begin
 			cnt_vert_q <= first_line_s;
 			hsync_n_o  <= '1';
 			vsync_n_o  <= '1';
-			hblank_q   <= false;
-			vblank_q   <= false;
+			hblank_o   <= '0';
+			vblank_o   <= '0';
 
 		elsif clock_i'event and clock_i = '1' then
 			if clk_en_5m37_i then
@@ -164,9 +166,9 @@ begin
 					hsync_n_o <= '1';
 				end if;
 				if    cnt_hor_q = -72 then		-- -72		-62		-69
-					hblank_q  <= true;
+					hblank_o  <= '1';
 				elsif cnt_hor_q = -13 then		-- -14		-4			-11
-					hblank_q  <= false;
+					hblank_o  <= '0';
 				end if;
 
 				-- Vertical sync ------------------------------------------------------
@@ -178,9 +180,9 @@ begin
 					end if;
 
 					if    cnt_vert_q = 242 then
-						vblank_q  <= true;
+						vblank_o  <= '1';
 					elsif cnt_vert_q = first_line_s + 13 then
-						vblank_q  <= false;
+						vblank_o  <= '0';
 					end if;
 				else
 					if    cnt_vert_q = 218 then
@@ -190,9 +192,9 @@ begin
 					end if;
 
 					if    cnt_vert_q = 215 then
-						vblank_q  <= true;
+						vblank_o  <= '1';
 					elsif cnt_vert_q = first_line_s + 13 then
-						vblank_q  <= false;
+						vblank_o  <= '0';
 					end if;
 				end if;
 			end if;
@@ -211,7 +213,7 @@ begin
   num_pix_o  <= cnt_hor_q;
   num_line_o <= cnt_vert_q;
   vert_inc_o <= vert_inc_s;
-	blank_o    <= hblank_q or vblank_q;
+  blank_o    <= hblank_o or vblank_o;
 
 	-- Generate horizontal and vertical counters for VGA/HDMI (in top)
 	process (reset_i, clock_i)

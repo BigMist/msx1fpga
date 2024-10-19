@@ -25,7 +25,7 @@
 // Made module syncrhronous. Total code refactoring. (Sorgelig)
 // clk_spi must be at least 4 x sck for proper work.
 
-module sd_card #(parameter WIDE = 0)
+module sd_card1 #(parameter WIDE = 0)
 (
 	input         clk_sys,
 	input         reset,
