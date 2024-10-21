@@ -46,7 +46,7 @@ use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 use work.msx_pack.all;
 
-entity Mister_top is
+entity Mist_top is
 	port (
 		-- Clocks
 --		clock_50_i			: in    std_logic;
@@ -56,8 +56,13 @@ entity Mister_top is
 		clock_vga_s			: in 		std_logic;
 		pll_locked_s		: in 		std_logic;
 		reset					: in 		std_logic;
-		soft_reset_osd        : in     std_logic;
-		
+		soft_reset_osd    : in     std_logic;
+		-- F18A
+		clk_100_i         : in std_logic;
+		clk_25_i          : in std_logic;
+	   sprite_max_i      : in std_logic;
+	   scan_lines_i      : in std_logic;
+
 		-- Buttons
 		btn_n_i				: in    std_logic_vector(4 downto 1)	:= (others => '1');
 
@@ -126,6 +131,8 @@ entity Mister_top is
 		vga_hsync_n_o		: out   std_logic;
 		vga_vsync_n_o		: out   std_logic;
 		vga_blank			: out	  std_logic;
+		HBlank  			   : out	  std_logic;
+		VBlank			   : out	  std_logic;
 		vga_DE				: out	  std_logic
 		
 		-- HDMI
@@ -145,7 +152,7 @@ entity Mister_top is
 	);
 end entity;
 
-architecture behavior of Mister_top is
+architecture behavior of Mist_top is
 
 
 
@@ -237,28 +244,28 @@ architecture behavior of Mister_top is
 	signal volumes_s			: volumes_t;
 
 	-- Video
-	signal rgb_col_s			: std_logic_vector( 3 downto 0);
---	signal rgb_hsync_n_s		: std_logic;
---	signal rgb_vsync_n_s		: std_logic;
-	signal cnt_hor_s			: std_logic_vector( 8 downto 0);
-	signal cnt_ver_s			: std_logic_vector( 7 downto 0);
-	signal vga_hsync_n_s		: std_logic;
-	signal vga_vsync_n_s		: std_logic;
-	signal vga_blank_s		: std_logic;
-	signal vga_DE_s			: std_logic;
-	signal vga_col_s			: std_logic_vector( 3 downto 0);
-	signal vga_r_s				: std_logic_vector( 3 downto 0);
-	signal vga_g_s				: std_logic_vector( 3 downto 0);
-	signal vga_b_s				: std_logic_vector( 3 downto 0);
-	signal scanlines_en_s	: std_logic;
-	signal odd_line_s			: std_logic;
-	signal sound_hdmi_l_s	: std_logic_vector(15 downto 0);
-	signal sound_hdmi_r_s	: std_logic_vector(15 downto 0);
-	signal tdms_r_s			: std_logic_vector( 9 downto 0);
-	signal tdms_g_s			: std_logic_vector( 9 downto 0);
-	signal tdms_b_s			: std_logic_vector( 9 downto 0);
-	signal tdms_p_s			: std_logic_vector( 3 downto 0);
-	signal tdms_n_s			: std_logic_vector( 3 downto 0);
+--	signal rgb_col_s			: std_logic_vector( 3 downto 0);
+--	signal cnt_hor_s			: std_logic_vector( 8 downto 0);
+--	signal cnt_ver_s			: std_logic_vector( 7 downto 0);
+--	signal vga_hsync_n_s		: std_logic;
+--	signal vga_vsync_n_s		: std_logic;
+--	signal vga_blank_s		: std_logic;
+--	signal vga_hblank_s		: std_logic;
+--	signal vga_vblank_s		: std_logic;
+--	signal vga_DE_s			: std_logic;
+--	signal vga_col_s			: std_logic_vector( 3 downto 0);
+--	signal vga_r_s				: std_logic_vector( 3 downto 0);
+--	signal vga_g_s				: std_logic_vector( 3 downto 0);
+--	signal vga_b_s				: std_logic_vector( 3 downto 0);
+--	signal scanlines_en_s	: std_logic;
+--	signal odd_line_s			: std_logic;
+--	signal sound_hdmi_l_s	: std_logic_vector(15 downto 0);
+--	signal sound_hdmi_r_s	: std_logic_vector(15 downto 0);
+--	signal tdms_r_s			: std_logic_vector( 9 downto 0);
+--	signal tdms_g_s			: std_logic_vector( 9 downto 0);
+--	signal tdms_b_s			: std_logic_vector( 9 downto 0);
+--	signal tdms_p_s			: std_logic_vector( 3 downto 0);
+--	signal tdms_n_s			: std_logic_vector( 3 downto 0);
 
 	-- Keyboard
 	signal rows_s				: std_logic_vector( 3 downto 0);
@@ -324,7 +331,7 @@ begin
 	the_msx: entity work.msx
 	generic map (
 		hw_id_g			=> 8,  -- 10 Mister, 8 Mist
-		hw_txt_g			=> "MiST board",
+		hw_txt_g			=> "BigMiST",
 		hw_version_g	=> actual_version,
 		video_opt_g		=> 0,				
 		ramsize_g		=> 8192, --8192,
@@ -373,13 +380,13 @@ begin
 		bus_wait_n_i	=> bus_wait_n_s,
 		bus_nmi_n_i		=> '1',
 		bus_int_n_i		=> bus_int_n_s,
-		-- VDP RAM
-		vram_addr_o		=> vram_addr_s,
-		vram_data_i		=> vram_do_s,
-		vram_data_o		=> vram_di_s,
-		vram_ce_o		=> open,--vram_ce_s,
-		vram_oe_o		=> open,--vram_oe_s,
-		vram_we_o		=> vram_we_s,
+				-- F18A
+		clk_100_i      => clk_100_i,
+		clk_25_i       => clk_25_i,
+	   sprite_max_i   => sprite_max_i,
+	   scan_lines_i   => scan_lines_i,
+
+
 		-- Keyboard
 		rows_o			=> rows_s,
 		cols_i			=> cols_s,
@@ -418,13 +425,14 @@ begin
 		joy2_btn2_o		=> open,
 		joy2_out_o		=> joy2_out_s,
 		-- Video
-		cnt_hor_o		=> cnt_hor_s,
-		cnt_ver_o		=> cnt_ver_s,
+
 		rgb_r_o			=> vga_r_o,
 		rgb_g_o			=> vga_g_o,
 		rgb_b_o			=> vga_b_o,
 		hsync_n_o		=> vga_hsync_n_o,
 		vsync_n_o		=> vga_vsync_n_o,
+		hblank_o       => HBlank,
+		vblank_o       => VBlank,
 		ntsc_pal_o		=> open,
 		vga_on_k_i		=> '0',
 		scanline_on_k_i=> '0',
@@ -444,36 +452,6 @@ begin
 
 	joyX_p7_o <= not joy1_out_s;		-- for Sega Genesis joypad
 	
-
---	-- RAM
---	ram: sdramMister
---	port map (
---		clk			=> clock_sdram_s,
---		init			=> reset_s,
-----		refresh_i	=> '1',
---		-- Static RAM bus
---		addr			=> "00" & ram_addr_s,
---		din			=> ram_data_to_s,
---		dout			=> ram_data_from_s,
-----		cs_i			=> ram_ce_s,
---		rd				=> ram_oe_s and ram_ce_s, 	-- There's no Cs signal on sdramMister so...
---		we				=> ram_we_s and ram_ce_s, 	-- There's no Cs signal on sdramMister so...
---		ready			=>	sdram_ready,				--	sdramMister 
---		
---		-- SD-RAM ports
---		SDRAM_CLK	=>	sdram_clk_o,
---		SDRAM_CKE	=> sdram_cke_o,
---		SDRAM_nCS	=> sdram_cs_o,
---		SDRAM_nRAS	=> sdram_ras_o,
---		SDRAM_nCAS	=> sdram_cas_o,
---		SDRAM_nWE	=> sdram_we_o,
---		SDRAM_DQMH	=> sdram_dqm_o(1),
---		SDRAM_DQML	=> sdram_dqm_o(0),
---		SDRAM_BA		=> sdram_ba_o,
---		SDRAM_A		=> sdram_ad_o,
---		SDRAM_DQ		=> sdram_da_io
---
---	);
 
 ram: entity work.ssdram
         generic map (
@@ -504,19 +482,6 @@ ram: entity work.ssdram
 
         );
 	
-	-- VRAM
-	vram: entity work.spram
-	generic map (
-		addr_width_g => 14,
-		data_width_g => 8
-	)
-	port map (
-		clk_i		=> clock_master_s,
-		we_i		=> vram_we_s,
-		addr_i	=> vram_addr_s,
-		data_i	=> vram_di_s,
-		data_o	=> vram_do_s
-	);
 
 	-- Keyboard PS/2
 	keyb: entity work.keyboard
@@ -568,32 +533,9 @@ ram: entity work.ssdram
 
 	audio_l_amp_s	<= audio_l_s(15) & audio_l_s(13 downto 0) & "0";
 	audio_r_amp_s	<= audio_r_s(15) & audio_r_s(13 downto 0) & "0";
-	PreDac_l_s		<= std_logic_vector(audio_l_amp_s); --PreDac_l_s		<= std_logic_vector(audio_l_s);
-	PreDac_r_s		<= std_logic_vector(audio_r_amp_s); --PreDac_r_s		<= std_logic_vector(audio_r_s);
+	PreDac_l_s		<= std_logic_vector(audio_l_s);
+	PreDac_r_s		<= std_logic_vector(audio_r_s);
 
-	-- Left Channel
-	audiol : entity work.dac
-	generic map (
-		nbits_g	=> 16
-	)
-	port map (
-		reset_i	=> reset_s,
-		clock_i	=> clock_3m_s,
-		dac_i		=> audio_l_amp_s,
-		dac_o		=> dac_l_o
-	);
-
-	-- Right Channel
-	audior : entity work.dac
-	generic map (
-		nbits_g	=> 16
-	)
-	port map (
-		reset_i	=> reset_s,
-		clock_i	=> clock_3m_s,
-		dac_i		=> audio_r_amp_s,
-		dac_o		=> dac_r_o
-	);
 
 	-- Glue logic
 
@@ -629,48 +571,9 @@ ram: entity work.ssdram
 		button_i			=> btn_n_i(1) or btn_n_i(2),
 		result_o			=> btn_scan_s
 	);
-	
-	process (por_s, btn_scan_s)
-	begin
-		if por_s = '1' then
-			scanlines_en_s <= '0';
-		elsif falling_edge(btn_scan_s) then
-			scanlines_en_s <= not scanlines_en_s;
-		end if;
-	end process;
-
-	-- VGA framebuffer
-	vga: entity work.vga
-	port map (
-		I_CLK			=> clock_master_s,
-		I_CLK_VGA	=> clock_vga_s,
-		I_COLOR		=> rgb_col_s,
-		I_HCNT		=> cnt_hor_s,
-		I_VCNT		=> cnt_ver_s,
-		O_HSYNC		=> vga_hsync_n_s,
-		O_VSYNC		=> vga_vsync_n_s,
-		O_COLOR		=> vga_col_s,
-		O_HCNT		=> open,
-		O_VCNT		=> open,
-		O_H			=> open,
-		O_BLANK		=> vga_blank_s,
-		O_DE			=> vga_DE_s
-	);
-
-	-- Scanlines
-	process(vga_hsync_n_s,vga_vsync_n_s)
-	begin
-		if vga_vsync_n_s = '0' then
-			odd_line_s <= '0';
-		elsif rising_edge(vga_hsync_n_s) then
-			odd_line_s <= not odd_line_s;
-		end if;
-	end process;
 
 
 
-	vga_blank 		<= vga_blank_s;
-	vga_DE			<= vga_DE_s;
 
 	-- Peripheral BUS control
 	bus_data_from_s	<= jt51_data_from_s	when jt51_hd_s = '1'	else
